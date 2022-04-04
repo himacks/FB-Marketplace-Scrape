@@ -21,6 +21,7 @@ const ID = {
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-notifications']
   });
   const page = await browser.newPage();
+  let cookies = null;
 
   let login = async () => {
     // login
@@ -46,11 +47,20 @@ const ID = {
 
     await page.click("#checkpointSubmitButton");
 
-    await page.waitForNavigation();
+    while(true)
+    {
+      await page.waitForNavigation();
 
-    await page.click("#checkpointSubmitButton");
-
-    await page.waitForNavigation();
+      if (await page.$('#checkpointSubmitButton') !== null) {
+        await page.click("#checkpointSubmitButton");
+      }
+      else
+      {
+        break;
+      }
+    }
+    
+    cookies = await page.cookies();
 
     console.log("2fa done");
     
@@ -60,6 +70,8 @@ const ID = {
   let viewMarketplace = async (city, maxPrice, query, citiesDict) => {
 
     return new Promise( async (resolve) => {
+
+      await page.setCookie(...cookies);
 
       await page.goto('https://www.facebook.com/marketplace/' + city + '/search/?maxPrice=100&deliveryMethod=local_pick_up&itemCondition=used%3Bopen_box_new%3Brefurbished%3Bused_good%3Bused_like_new%3Bused_fair&query=sectional&exact=false', {
       waitUntil: 'networkidle2'
